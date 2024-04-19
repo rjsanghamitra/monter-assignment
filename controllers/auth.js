@@ -15,10 +15,10 @@ const initialSignup = async (req, res) => {
         email = req.body.email;
         password = req.body.password;
         sendOtp(email);
-        res.status(201).json({ msg: "obtained credentials" });
+        return res.status(201).json({ msg: "obtained credentials" });
     } catch (err) {
         console.log("error in initial signup")
-        res.status(400).json({ error: err });
+        return res.status(400).json({ error: err });
     }
 }
 
@@ -26,12 +26,14 @@ const register = async (req, res) => {
     try {
         location = req.body.location;
         age = req.body.age;
-        designation = req.body.designation
+        designation = req.body.designation;
+        otp = req.body.otp;
         
-        // const check = verifyOtp(email, otp);
-        // if (!check) {
-        //     res.status(401).json({ msg: "invalid otp" });
-        // }
+        const check = await verifyOtp(email, otp);
+        console.log(check)
+        if (!check) {
+            return res.status(401).json({ msg: "invalid otp" });
+        }
         
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
@@ -44,10 +46,10 @@ const register = async (req, res) => {
         });
         const savedUser = await newUser.save();
         const token = await createToken(savedUser._id);
-        res.status(201).json(savedUser);
+        return res.status(201).json(savedUser);
     } catch (err) {
         console.log("error in register")
-        res.status(500).json({ error: err });
+        return res.status(500).json({ error: err });
     }
 }
 
